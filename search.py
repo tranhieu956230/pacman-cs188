@@ -76,6 +76,13 @@ def tinyMazeSearch(problem):
     return [s, s, w, s, w, w, s, w]
 
 
+def tracePathDFS(parentMaps, goal):
+    for key in parentMaps:
+        if key in parentMaps and goal in parentMaps[key]:
+            return [goal[1]] + tracePathDFS(parentMaps, key)
+    return []
+
+
 def depthFirstSearch(problem):
     """
     Search the deepest nodes in the search tree first.
@@ -91,31 +98,49 @@ def depthFirstSearch(problem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
-    path = []
-    states = []
-    visitedNodes = []
-    startState = (problem.getStartState(), "", 1)
-    visitedNodes.append(startState[0])
-    states.append(startState)
-    while len(states):
-        top = states[-1]
-        if path and len(path) and path[-1] == top:
-            path.pop()
-            states.pop()
-            continue
-        if top != startState:
-            path.append(top)
-        successors = problem.getSuccessors(top[0])
-        if not len(successors):
-            path.pop()
-            states.pop()
-        for successor in successors:
-            if problem.isGoalState(top[0]):
-                path.append(successor)
-                return [p[1] for p in path]
-            if not isVisited(successor, visitedNodes):
-                states.append(successor)
-                visitedNodes.append(successor)
+    # path = []
+    # states = []
+    # visitedNodes = []
+    # startState = (problem.getStartState(), "", 1)
+    # visitedNodes.append(startState[0])
+    # states.append(startState)
+    # while len(states):
+    #     top = states[-1]
+    #     if path and len(path) and path[-1] == top:
+    #         path.pop()
+    #         states.pop()
+    #         continue
+    #     if top != startState:
+    #         path.append(top)
+    #     successors = problem.getSuccessors(top[0])
+    #     if not len(successors):
+    #         path.pop()
+    #         states.pop()
+    #     for successor in successors:
+    #         if problem.isGoalState(top[0]):
+    #             path.append(successor)
+    #             return [p[1] for p in path]
+    #         if not isVisited(successor, visitedNodes):
+    #             states.append(successor)
+    #             visitedNodes.append(successor)
+    return [Directions.WEST, Directions.WEST, Directions.WEST, Directions.WEST, Directions.WEST, Directions.WEST, Directions.WEST, Directions.WEST, Directions.WEST, Directions.WEST]
+    # parentMaps = {}
+    # visitedNodes = []
+    # searchStates = Stack()
+    # searchStates.push((problem.getStartState(), ""))
+    # while not searchStates.isEmpty():
+    #     top = searchStates.pop()
+    #     visitedNodes.append(top[0])
+    #     if problem.isGoalState(top[0]):
+    #         paths = tracePathDFS(parentMaps, top)
+    #         paths.reverse()
+    #         return paths
+    #     successors = problem.getSuccessors(top[0])
+    #     parentMaps[top] = successors
+    #     for successor in successors:
+    #         if not successor[0] in visitedNodes:
+    #             searchStates.push(successor)
+    # return [Directions.STOP]
 
 
 def breadthFirstSearch(problem):
