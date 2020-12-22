@@ -18,8 +18,7 @@ Pacman agents (in searchAgents.py).
 """
 
 import util
-from util import Stack
-from util import Queue
+from util import PriorityQueue, Stack, Queue
 from game import Directions
 
 
@@ -76,10 +75,10 @@ def tinyMazeSearch(problem):
     return [s, s, w, s, w, w, s, w]
 
 
-def tracePathDFS(parentMaps, goal):
+def tracePath(parentMaps, goal):
     for key in parentMaps:
         if key in parentMaps and goal in parentMaps[key]:
-            return [goal[1]] + tracePathDFS(parentMaps, key)
+            return tracePath(parentMaps, key) + [goal[1]]
     return []
 
 
@@ -98,94 +97,65 @@ def depthFirstSearch(problem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
-    # path = []
-    # states = []
-    # visitedNodes = []
-    # startState = (problem.getStartState(), "", 1)
-    # visitedNodes.append(startState[0])
-    # states.append(startState)
-    # while len(states):
-    #     top = states[-1]
-    #     if path and len(path) and path[-1] == top:
-    #         path.pop()
-    #         states.pop()
-    #         continue
-    #     if top != startState:
-    #         path.append(top)
-    #     successors = problem.getSuccessors(top[0])
-    #     if not len(successors):
-    #         path.pop()
-    #         states.pop()
-    #     for successor in successors:
-    #         if problem.isGoalState(top[0]):
-    #             path.append(successor)
-    #             return [p[1] for p in path]
-    #         if not isVisited(successor, visitedNodes):
-    #             states.append(successor)
-    #             visitedNodes.append(successor)
-    return [Directions.WEST, Directions.WEST, Directions.WEST, Directions.WEST, Directions.WEST, Directions.WEST, Directions.WEST, Directions.WEST, Directions.WEST, Directions.WEST]
-    # parentMaps = {}
-    # visitedNodes = []
-    # searchStates = Stack()
-    # searchStates.push((problem.getStartState(), ""))
-    # while not searchStates.isEmpty():
-    #     top = searchStates.pop()
-    #     visitedNodes.append(top[0])
-    #     if problem.isGoalState(top[0]):
-    #         paths = tracePathDFS(parentMaps, top)
-    #         paths.reverse()
-    #         return paths
-    #     successors = problem.getSuccessors(top[0])
-    #     parentMaps[top] = successors
-    #     for successor in successors:
-    #         if not successor[0] in visitedNodes:
-    #             searchStates.push(successor)
-    # return [Directions.STOP]
+    parentMaps = {}
+    visitedNodes = []
+    searchStates = Stack()
+    searchStates.push((problem.getStartState(), ""))
+    while not searchStates.isEmpty():
+        top = searchStates.pop()
+        if not top[0] in visitedNodes:
+            visitedNodes.append(top[0])
+            if problem.isGoalState(top[0]):
+                return tracePath(parentMaps, top)
+            successors = problem.getSuccessors(top[0])
+            parentMaps[top] = successors
+            for successor in successors:
+                if not successor[0] in visitedNodes:
+                    searchStates.push(successor)
+    return [Directions.STOP]
 
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    states = []
-    path = []
-    startState = (problem.getStartState(), "", 1)
-    states.append(startState)
-    pathMap = {}
-    while len(states):
-        top = states.pop()
-        path.append(top)
-        successors = problem.getSuccessors(top[0])
-        pathMap[top] = []
-        for successor in successors:
-            if problem.isGoalState(successor[0]):
-                path.append(successor)
-                path = tracePath(pathMap, path[0]) + path
-                return [p[1] for p in path if p[1] != '']
-            if not isVisited(successor, states):
-                pathMap[top].append(successor)
-                states.insert(0, successor)
-        path.pop()
+    parentMaps = {}
+    visitedNodes = []
+    searchStates = Queue()
+    searchStates.push((problem.getStartState(), ""))
+    while not searchStates.isEmpty():
+        top = searchStates.pop()
+        if not top[0] in visitedNodes:
+            visitedNodes.append(top[0])
+            if problem.isGoalState(top[0]):
+                return tracePath(parentMaps, top)
+            successors = problem.getSuccessors(top[0])
+            parentMaps[top] = successors
+            for successor in successors:
+                if not successor[0] in visitedNodes:
+                    searchStates.push(successor)
+    return [Directions.STOP]
 
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
     startState = (problem.getStartState(), "", 0)
-    paths = [{"path": [startState], "cost": startState[2]}]
-    visitedNodes = [startState]
-    while len(paths):
-        minPath = paths[-1]
+    paths = PriorityQueue()
+    paths.push({"path": [startState], "cost": startState[2]}, startState[2])
+    visitedNodes = []
+    while not paths.isEmpty():
+        minPath = paths.pop()
         currentPosition = minPath["path"][-1][0]
-        if problem.isGoalState(currentPosition):
-            return [p[1] for p in minPath["path"][1:]]
-        paths.pop()
-        successors = problem.getSuccessors(currentPosition)
-        for successor in successors:
-            if not isVisited(successor, visitedNodes):
-                newPath = {"path": minPath["path"] + [successor],
-                           "cost": minPath["cost"] + successor[2]}
-                insertionSort(paths, newPath)
-                visitedNodes.append(successor)
+        if not currentPosition in visitedNodes:
+            visitedNodes.append(currentPosition)
+            if problem.isGoalState(currentPosition):
+                return [p[1] for p in minPath["path"][1:]]
+            successors = problem.getSuccessors(currentPosition)
+            for successor in successors:
+                if not successor[0] in visitedNodes:
+                    newPath = {"path": minPath["path"] + [successor],
+                               "cost": minPath["cost"] + successor[2]}
+                    paths.push(newPath, newPath["cost"])
 
 
 def nullHeuristic(state, problem=None):
@@ -200,64 +170,28 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
     startNode = (problem.getStartState(), "", 0)
-    visitedNodes = [startNode]
-    paths = [{"path": [startNode], "cost": startNode[2],
-              "heuristic": startNode[2] + heuristic(startNode[0], problem)}]
-    while len(paths):
-        minPath = paths[-1]
+    visitedNodes = []
+    paths = PriorityQueue()
+    startPath = {"path": [startNode], "cost": startNode[2],
+                 "heuristic": heuristic(startNode[0], problem)}
+    paths.push(startPath, startPath["cost"] + startPath["heuristic"])
+    while not paths.isEmpty():
+        minPath = paths.pop()
         currentPosition = minPath["path"][-1][0]
-        if problem.isGoalState(currentPosition):
-            return [p[1] for p in minPath["path"][1:]]
-        paths.pop()
-        successors = problem.getSuccessors(currentPosition)
-        for successor in successors:
-            newPath = {"path": minPath["path"] + [successor],
-                       "cost": minPath["cost"] + successor[2],
-                       "heuristic": heuristic(successor[0], problem)}
-            if not isVisited(successor, visitedNodes):
-                visitedNodes.append(successor)
-                insertionSort(paths, newPath)
-            else:
-                for i in range(len(paths)):
-                    path = paths[i]
-                    lastElement = path["path"][-1]
-                    if lastElement[0] == successor[0] and path["cost"] > newPath["cost"]:
-                        path[i] = newPath
-
-
-def tracePath(pathMap, state):
-    path = []
-    currentState = state
-    listKeys = list(pathMap.keys())
-    listKeys.reverse()
-    for key in listKeys:
-        if currentState in pathMap[key]:
-            if key != listKeys[-1]:
-                path.append(key)
-            currentState = key
-    path.reverse()
-    return path
-
-
-def isVisited(state, path):
-    for p in path:
-        if state[0] == p[0]:
-            return True
-    return False
-
-
-def insertionSort(paths, newPath):
-    isInserted = False
-    for i in range(len(paths)):
-        condition = newPath["cost"] + newPath["heuristic"] >= paths[i]["cost"] + \
-            paths[i]["heuristic"] if "heuristic" in newPath.keys(
-        ) else newPath["cost"] >= paths[i]["cost"]
-        if condition:
-            paths.insert(i, newPath)
-            isInserted = True
-            return
-    if not isInserted:
-        paths.append(newPath)
+        if not currentPosition in visitedNodes:
+            visitedNodes.append(currentPosition)
+            if problem.isGoalState(currentPosition):
+                return [p[1] for p in minPath["path"][1:]]
+            successors = problem.getSuccessors(currentPosition)
+            for successor in successors:
+                newPath = {"path": minPath["path"] + [successor],
+                           "cost": minPath["cost"] + successor[2],
+                           "heuristic": heuristic(successor[0], problem)}
+                if not successor[0] in visitedNodes:
+                    paths.push(newPath, newPath["cost"] + newPath["heuristic"])
+                else:
+                    paths.update(
+                        newPath, newPath["cost"] + newPath["heuristic"])
 
 
 # Abbreviations
