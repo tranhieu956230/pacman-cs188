@@ -90,10 +90,8 @@ class ReflexAgent(Agent):
                 if nextPos == newGhostPos[i] and not newScaredTimes[i]:
                     return 0
         foodList = newFood.asList()
-        if not len(foodList):
-            return 1
         currentFoodList = currentGameState.getFood().asList()
-        if len(currentFoodList) != len(foodList):
+        if not len(foodList) or len(currentFoodList) != len(foodList):
             return 100
         nearestFood = foodList[0]
         nearestFoodDistance = manhattanDistance(currentPos, nearestFood)
