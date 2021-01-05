@@ -20,6 +20,19 @@
 #     state.getScore()
 #           used by multiAgents.scoreEvaluationFunction, which is the default
 #
+from util import TimeoutFunction
+import time
+import autograder
+import pacman
+import layout
+import os
+import sys
+import traceback
+import math
+import random
+from ghostAgents import RandomGhost, DirectionalGhost
+from pacman import GameState
+from game import Agent
 import testClasses
 import json
 
@@ -27,17 +40,6 @@ from collections import defaultdict
 from pprint import PrettyPrinter
 pp = PrettyPrinter()
 
-from game import Agent
-from pacman import GameState
-from ghostAgents import RandomGhost, DirectionalGhost
-import random
-import math
-import traceback
-import sys
-import os
-import layout
-import pacman
-import autograder
 # import grading
 
 VERBOSE = False
@@ -461,10 +463,6 @@ class GraphGameTreeTest(testClasses.TestCase):
             handle.write('action: "%s"\n' % (action,))
             handle.write('generated: "%s"\n' % (generated,))
         return True
-
-
-import time
-from util import TimeoutFunction
 
 
 class EvalAgentTest(testClasses.TestCase):

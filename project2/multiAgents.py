@@ -166,7 +166,48 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        bestAction = Directions.EAST
+        bestScore = -100000
+        for action in gameState.getLegalActions(0):
+            if action != Directions.STOP:
+                score = self.minimax(gameState.generateSuccessor(
+                    0, action), self.depth * 2 - 1, False)
+                if score > bestScore:
+                    bestScore = score
+                    bestAction = action
+        return bestAction
+
+    def minimax(self, gameState, depth, isMax):
+        if depth == 0 or gameState.isWin() or gameState.isLose():
+            return self.evaluationFunction(gameState)
+        if isMax:
+            maxValue = -10000
+            for action in gameState.getLegalActions(0):
+                if action != Directions.STOP:
+                    value = self.minimax(gameState.generateSuccessor(
+                        0, action), depth - 1, False)
+                    maxValue = max(maxValue, value)
+            return maxValue
+
+        afterGhostMoveGameStates = []
+        generateGameStateAfterGhostsMove(
+            gameState.getNumAgents() - 1, gameState, afterGhostMoveGameStates)
+        minValue = 10000
+        for state in afterGhostMoveGameStates:
+            value = self.minimax(state, depth - 1, True)
+            minValue = min(value, minValue)
+        return minValue
+
+
+def generateGameStateAfterGhostsMove(numGhost, gameState, storage):
+    agentIndex = gameState.getNumAgents() - numGhost
+    for action in gameState.getLegalActions(agentIndex):
+        nextGameState = gameState.generateSuccessor(agentIndex, action)
+        if numGhost > 1:
+            generateGameStateAfterGhostsMove(
+                numGhost - 1, nextGameState, storage)
+        else:
+            storage.append(nextGameState)
 
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
